@@ -1,3 +1,18 @@
+2002-05-29  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Applied patch provided by Stephen Quiney <S.J.Quinney@durham.ac.uk>,
+          removes dependancy on Math::libm and fixes test script problem
+          which required the $ESTAR_DATA environment variable to be set.
+
+2002-03-30  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Minor bug fix?
+
+2002-03-29  Alasdair Allan <aa@astro.ex.ac.uk>
+        
+        * Added a freeze() function so that the the Catalog object can be
+          stored persistently using the Data::Dumper module
+          
 2002-01-24  Alasdair Allan <aa@astro.ex.ac.uk>
 
         * Various changes made to support the Field Correlation Client,
