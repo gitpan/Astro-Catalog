@@ -63,7 +63,7 @@ use vars qw/ $VERSION /;
 use LWP::UserAgent;
 use Net::Domain qw(hostname hostdomain);
 use File::Spec;
-use Math::Libm qw(:all);
+#use Math::Libm qw(:all);
 use Carp;
 
 # generic catalog objects
