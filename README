@@ -6,48 +6,119 @@ What is it?
 
 The module is a generic object orientated astronomical catalogue object.
 
+Version 3.x.x
+-------------
+
+Verison 3.x.x of the Astro::Catalog breaks the existing v1.x and v2.x API. 
+There are many good reasons for this, chiefly the introduction of new features
+that would have been hard to implement and maintain backwards compatibility.
+
+New features for v3.x.x include pluggable I/O support, filtering and inline
+sorting of retrieved catalogues. However alot of the improvements are not 
+readily noticable by the user as alot of work has gone into the infrastructure
+of the package. This means that adding additional I/O and Query support has 
+been made alot easier.
+
 Requirements
 ------------
 
-While useful in itself as a generic catalogue object, the additional optionals
-Astro::Catalog::USNOA2 and Astro::Catalog::GSC modules provides an interfaces 
-to the online USNO-A2 and Guide Star Catalogues provided by ESO/ST-ECF.
+The madatory requirement of the Astro::Catalog package are,
+ 
+  Astro::Coords
+  Astro::Telescope
+  Astro::SLA
+  Time::Piece
+  File::Spec
+  Math::Libm
+  Net::Domain
+  LWP::UserAgent
+  SOAP::Lite
+  Test
+  Test::More
+  Data::Dumper
+  Carp
+  VOTable
 
-The following external modules are required by the Astro::Catalog module and
-associated classes
+See http://heasarc.gsfc.nasa.gov/classx/pub/votable/ to obtain the GSFC
+VOTable package.
 
-   LWP::UserAgent
-   Net::Domain 
-   File::Spec
-   Carp
-   
-all these modules, if not already installed, are available from CPAN. If you
-want to (optionally) use the Astro::Catalog::SuperCOSMOS module then the
-
-   Astro::Aladin
-   
-module and supporting CDS Java infrastructure must be installed. This is
-also needed, along with the Astro::DSS module, if you want to make use of
-the example scripts provided with the distribution.   
-  
 Provides
 --------
 
-The package provides the following classes
+The package provides the following user level classes
 
-    Astro::Catalog
-    Astro::Catalog::Star
-    Astro::Catalog::SuperCOSMOS::Query
-    Astro::Catalog::GSC::Query
-    Astro::Catalog::USNOA2::Query
+  Astro::Catalog
+    A generic catalogue object, includes pluggable I/O support.
+  
+  Astro::Catalog::Star
+    A generic catalogue item.
     
-further information can be found in the POD included in modules.
+  Astro::Catalog::Query::USNOA2
+    A class to automatically retrieves a objects in the USNO-A2.0 catalogue
+    matching query parameters and returns an Astro::Catalog object. 
 
+  Astro::Catalog::Query::GSC
+    A class to automatically retrieves a objects in the GSC catalogue
+    matching query parameters and returns an Astro::Catalog object.
+ 
+  Astro::Catalog::Query::2MASS
+   A class to automatically retrieves a objects in the 2MASS catalogue
+   matching query parameters and returns an Astro::Catalog object.
+        
+  Astro::Catalog::Query::SuperCOSMOS
+    A class to automatically retrieves a objects in the SuperCOSMOS catalogue
+    matching query parameters and returns an Astro::Catalog object. 
+            
+  Astro::Catalog::Query::CMC
+    A class to automatically retrieves a objects in the Carlsberg Merdian
+    Catralogue (CMC/12) matching query parameters and returns an Astro::Catalog
+    object. 
+    
+  Astro::Catalog::Query::Sesame
+    A class that does a name lookup using the CDS Sesame Web Service and
+    returns an Astro::Catalog object containing a single Astro::Catalog::Star
+    object.
+    
+  Astro::Catalog::Query::SIMBAD
+    A class that does an object lookup on CDS SIMBAD, implements most of
+    the functionaliy of the Astro::SIMBAD module.
+     
+  Astro::Catalog::Query::SkyCat
+    A class that generates SkyCat catalogue queries
+    
+  Astro::Catalog::Query::Vizier  
+    A class that generates Vizier catalogue queries
+
+Additional classes provided by the package handle things that you don't
+need to concern yourself with, unless you want to write your own I/O or
+query plugins, these are
+
+  Astro::Catalog::IO::Cluster
+  Astro::Catalog::IO::JCMT
+  Astro::Catalog::IO::Simple
+  Astro::Catalog::IO::TST      (read only)
+  Astro::Catalog::IO::VOTable  (write only)
+  Astro::Catalog::Transport::REST
+  Astro::Catalog::Transport::WebService
+  Astro::Catalog::Query
+
+The user level query classes inherit from the Astro::Catalog::Transport::XXX
+classes, which in turn all inherit basic functionality from the Query base
+class Astro::Catalog::Query. The Astro::Catalog::IO modules provide pluggable
+polymorphic input/output.
+
+It should be noted that Astro::Catalog::IO::TST does not currently provide
+a _write_catalog() function, and that Astro::Catalog::IO::VOTable does not
+provide a _read_catalog() function.
+
+While Astro::Catalog::IO::Cluster writes old style numeric quality flag Cluster
+files there is (limited) support for reading new style character quality flags.
+ 
 Where can I get it?
 -------------------
 
-The package is availabe from CPAN <http://www.cpan.org/> and from
-the eSTAR Project at http://www.estar.org.uk/
+The package is availabe from CPAN <http://www.cpan.org/> and from the 
+eSTAR Project at http://www.estar.org.uk/
 
 Installation
 ------------
@@ -62,26 +133,31 @@ Installation is automated using the ExtUtils::MakeMaker library
 Authors
 -------
 
-The module was written by Alasdair Allan <aa@astro.ex.ac.uk>, of the 
-University of Exeter Astrophysics Group (http://www.astro.ex.ac.uk/) 
+The module was originally written by Alasdair Allan <aa@astro.ex.ac.uk>,
+of the University of Exeter Astrophysics Group (http://www.astro.ex.ac.uk/)  
 as part of his work for the eSTAR project.
 
-The latest version of the module includes patches supplied by Stephen
-Quinney <S.J.Quinney@durham.ac.uk> of Durham University, and Brad
-Cavanagh <b.cavanagh@jach.hawaii.edu> of the Joint Astronomy Centre
-in Hawaii.
+The internal architecture of the module has been extensively rewritten 
+for v3.0 by Tim Jenness <t.jenness@jach.hawaii.edu> of the Joint Astronomy
+Centre in Hawaii and Alasdair Allan <aa@astro.ex.ac.uk>, of the University 
+of Exeter Astrophysics Group
+
+This version also includes patches supplied by Stephen Quinney
+<S.J.Quinney@durham.ac.uk> of Durham University, and Brad Cavanagh
+<b.cavanagh@jach.hawaii.edu> of the Joint Astronomy Centre in Hawaii.
 
 License
--------
-This package is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
+------- 
+This package is free software; you can redistribute it and/or modify it 
+under the terms of the GNU General Public License as published by the 
+Free Software Foundation; either version 2 of the License, or (at your 
+option) any later version.
 
-This program is distributed in the hope that it will be useful,but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+for more details.
 
-You should have received a copy of the GNU General Public License along with
-this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-Place,Suite 330, Boston, MA  02111-1307, USA
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place,Suite 330, Boston, MA  02111-1307, USA

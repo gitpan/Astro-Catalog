@@ -1,6 +1,219 @@
+2003-10-30  Alasdair Allan <aa@astro.ex.ac.uk> (Version 3.5.1)
+
+        * IO/Cluster.pm: Added read support for new style character
+          quality flags. Cluster files are still written using the
+          old style numeric flags.
+          
+2003-10-17  Alasdair Allan <aa@astro.ex.ac.uk> (Version 3.5.0)
+
+        * IO/VOTable.pm: Very simple VOTable reader added, should
+          now get at least basic information into the Astro::Catalog
+          object if it is passed a VOTable.
+          
+        * t/2_votable.t: Added test harness for reading VOTables.  
+          
+2003-10-16  Alasdair Allan <aa@astro.ex.ac.uk> (Version 3.4.0)
+
+        * IO/VOTable.pm: Fixed VOTable output to actually have some
+          meta-data, now readable by treeview. Added DEFINITIONS
+          element to the table and filled in various "default"
+          meta-data. The tables are not bogus, but the epoch and
+          equinoxes may be incorrect in some cases (SuperCOSMOS
+          catalogues for instance).
+          
+2003-10-13  Alasdair Allan <aa@astro.ex.ac.uk> (Version 3.3.0)
+
+        * Added VOTable support (write only) as a pluggable IO module
+          along with associated test harness.
+          
+2003-09-30  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Query/Query/Sesame.pm: Modified to cope with change in return
+          format by CDS. 
+                  
+2003-09-24  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Query/Query/SIMBAD.pm: Removed debugging statements which 
+          generated a file containing a copy of the retrieved HTML in 
+          the current working directory.
+               
+        * etc/sss.cfg: Added SkyCat SuperCOSMOS configuration file to 
+          default distribution
+        
+        * etc/skycat.cfg: Added generic SkyCat configuration file to 
+          default distribution   
+
+        * Query/Query/SkyCat.pm: Updated to look for $PERLPREFIX/etc/skycat.cfg
+          configuration file by default.
+               
+        * Makefile.PL: Modified makefile to install the SkyCat configuration
+          files to $(PERLPREFIX)/etc in preperation for shifting access to
+          SuperCOSMOS from being dependant on Astro::Aladin to using the
+          Astro::Catalog::Query::SkyCat module. 
+          
+        * Query/Query/SuperCOSMOS.pm: Totally reimplemented this module
+          from scratch to use the SkyCat.pm module rather than relying
+          on the Astro::Aladin implementation. 
+
+        * t/4_skycat_supercos.t: Added a test suite for the new SuperCOSMOS
+          module. This superceedes the older 4_supercos.t test suite.
+
+        * MANIFEST: Updated to reflect the actual package, we've been shipping
+          V3.x with bits missing since release, whoops!
+        
+        * old/*: Moved some of the non-functional test suite into a this
+          directory along with the old Astro::Aladin SuperCOSMOS module. 
+           
+2003-09-24  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Query/Query/CMC.pm: Added a Vizier Carlsberg Meridian Catalogue
+          (CMC/11) query sub-class to try and figure out how Tim had written 
+          the 2MASS (Vizier generic) class. RA & Dec incorrect.
+
+        * Query/Query/2MASS.pm: Moved colour generation for 2MASS catalogue
+          from the more generic IO/TST.pm module.
+        
+        * IO/TST.pm: See changes to Query/Query/2MASS.pm
+        
+2003-09-12  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Query/Query/Sesame.pm: Modified to cope with change in return
+          format by CDS.
+
+        * Query/Query/USNOA2.pm: Fixed problem with USNO-A2 having bogus
+          RA and Dec seconds fields (= 60.0) which breaks Astro::Catalog.
+          The query module now silently discards these objects (for now!).
+
+        * Query/Query/GSC.pm: Fixed problem with GSC which dropped the
+          B magnitude error into the quality flag. Fix breaks the t/4_gsc.t 
+          test harness.
+        
+        * Catalog.pm: Changed default origin of <UNKNOWN> to UNKNOWN to
+          avoid parsing problems when the results of a query are displayed
+          as part of an HTML page.
+                     
+2003-08-26  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Star/Star.pm: Modified quality() routine so it knows about
+          TST quality flags. Not a particularly good solution, need to
+          generalise this and move it to the IO::TST module.
+          
+        * IO/Cluster.pm: Moved id() changes for USNO-A2 to generic code
+          in the pluggable IO module
+          
+        * IO/TST.pm: Modified to generate colours and quality flags for 2MASS  
+
+2003-08-03  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * IO/Cluster.pm: Fiddled with the quality flags for Cluster output,
+          to get rid of an uninitalised value warning. Still need to go to
+          character quality flags.
+          
+        * Query/Query/USNOA2.pm: Changed the id() of the downloaded USNO-A2
+          stars to be numberic, otherwise we break the cluster format which
+          requires numeric id's. Also tweaked the $catalog->pushstar() line
+          so if the Astro::Coords object in the Astro::Catalog::Star object
+          is broken (bogus dec?) its not going to get included in the catalog.
+        
+2003-08-03  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* Query/Query/SIMBAD.pm: All the functionality of Astro::SIMBAD
+	integrated into Astro::Catalog... 
+
+	* Star/Star.pm: Add startype, spectype, longstartype and moreinfo
+	needed by SIMBAD query.
+
+2003-08-02  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* Transport/*.pm: Reorganized as part of SkyCat work 
+
+	* Query/Query/*.pm: All Query classes reorganised to make SkyCat
+	easier. 
+
+	* Query/Query.pm: Much reorganization to support SkyCat class. 
+
+	* Query/Query/SkyCat.pm: Now forms a query and parses the results
+	for an abritrary SkyCat-enabled server. Still not ready for prime
+	time.
+
+	* t/4_*.t: All query tests now use helper.pl
+	
+	* t/helper.pl: Reusable test components now in separate file 
+
+2003-08-01  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* Transport/REST.pm (useragent): Instantiate useragent on demand
+	rather than via configure (useful for skycat interface). Separate
+	construction of URL from retrieval of URL to allow simpler subclassing.
+
+2003-07-30  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* IO/TST.pm: Add TST format reader. Still has debug.
+
+2003-07-29  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Moved Astro::Catalog::BaseQuery to be Astro::Catalog::Query in
+          preparation for it be a proper polymorphic factory class for
+          generic catalogue queries.
+        
+        * Moved actualy query sub-classes down a directory level to allow
+          for the Query.pm file 
+          
+        * Added a WebService transport class, probably needs some added
+          generalisation, but our sample of web services is still small.
+          
+        * Added a Sesame.pm class to do CDS Sesame lookups by target name
+          using the new WebService transport class. 
+                       
+2003-07-28  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Moved the catalogue query classes to chare a common namespace,
+          current classes now inherit from the Astro::Catalog::Transport::REST
+          class. While future web and GRID service classes will inherit from
+          related classes. All the Astro::Catalog::Transport classes inherit
+          from Tim's BaseQuery class.
+          
+        * Moved REST specific setup from BaseQuery to Transport::REST class  
+
+        * t/*.t: Test scripts modified to work within new framework.
+        
+        * t/1_compile.t: Now chekc for presence of Astro::Aladin module
+        
+2003-07-27  Tim Jenness <timj@jach.hawaii.edu>
+
+        * Added sorting and filtering of catalogues.
+
+2003-07-26  Tim Jenness <timj@jach.hawaii.edu> 
+            & Alasdiar Allan <aa@astro.ex.ac.uk>
+            
+        * Added pluggable IO.
+            
+2003-07-24  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * t/catalog.t: Tests fixed to reflect the new two decimal place
+          precisions generated by using Astro::Coords objects
+          
+2003-07-24  Tim Jenness <timj@jach.hawaii.edu>
+
+	* BaseQuery/BaseQuery.pm: Write base class for catalog query classes.
+
+	* Catalog.pm (_read_cluster): No longer use ra() and dec() methods
+	to set the ra and dec (store the Astro::Coords object directly)
+
+	* Star/Star.pm: ra($ra) and dec($dec) methods now deprecated.
+
+        * t/1_compile.t: New tests addded.
+        
+2003-07-23  Tim Jenness <timj@jach.hawaii.edu>
+
+	* Star/Star.pm: Now uses Astro::Coords internally.
+
+	* Catalog.pm: Now uses Astro::Coords internally. Switch to lexical
+	  filehandles.
+
 2003-07-19  Alasdair Allan <aa@astro.ex.ac.uk> (version 2.1.3)
 
-        * Catalog.pm: added patch by Brad Cavangh to popstarbyid()
+        * Catalog.pm: added patch by Brad Cavanagh to popstarbyid()
         
 2003-07-15  Alasdair Allan <aa@astro.ex.ac.uk> (version 2.1.2)
 
