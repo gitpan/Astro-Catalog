@@ -1,6 +1,10 @@
 README
 MANIFEST
 Makefile.PL
+catalogs.PL
+supercosmos.PL
+finder.PL
+targets.dat
 GPL
 ChangeLog
 Catalog.pm
@@ -22,5 +26,13 @@ GSC/ChangeLog
 GSC/Query/Query.pm
 GSC/Query/Makefile.PL
 GSC/t/query.t
+SuperCOSMOS/README
+SuperCOSMOS/MANIFEST
+SuperCOSMOS/Makefile.PL
+SuperCOSMOS/GPL
+SuperCOSMOS/ChangeLog
+SuperCOSMOS/Query/Query.pm
+SuperCOSMOS/Query/Makefile.PL
+SuperCOSMOS/t/query.t
 t/star.t
 t/catalog.t

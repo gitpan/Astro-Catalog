@@ -19,7 +19,7 @@ package Astro::Catalog;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Catalog.pm,v 1.6 2002/03/31 21:39:48 aa Exp $
+#     $Id: Catalog.pm,v 1.9 2003/06/10 23:17:42 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2002 University of Exeter. All Rights Reserved.
@@ -30,12 +30,13 @@ package Astro::Catalog;
 
 =head1 NAME
 
-Astro::Catalog - A generic stellar catalogue object.
+Astro::Catalog - A generic API for stellar catalogues
 
 =head1 SYNOPSIS
 
   $catalog = new Astro::Catalog( Stars   => \@array );
   $catalog = new Astro::Catalog( Cluster => $file_name );
+  $catalog = new Astro::Catalog( Scalar      => $scalar );
 
 =head1 DESCRIPTION
 
@@ -55,14 +56,14 @@ use vars qw/ $VERSION /;
 use Astro::Catalog::Star;
 use Carp;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 # C O N S T R U C T O R ----------------------------------------------------
 
 =head1 REVISION
 
-$Id: Catalog.pm,v 1.6 2002/03/31 21:39:48 aa Exp $
+$Id: Catalog.pm,v 1.9 2003/06/10 23:17:42 aa Exp $
 
 =head1 METHODS
 
@@ -74,10 +75,12 @@ $Id: Catalog.pm,v 1.6 2002/03/31 21:39:48 aa Exp $
 
 Create a new instance from a hash of options 
 
-  $catalog = new Astro::Catalog( Stars   => \@array );
-  $catalog = new Astro::Catalog( Cluster => $file_name );
+  $catalog = new Astro::Catalog( Stars       => \@array );
+  $catalog = new Astro::Catalog( Cluster     => $file_name );
+  $catalog = new Astro::Catalog( Scalar      => $scalar );
 
-returns a reference to an C<Astro::Catalog> object.
+returns a reference to an C<Astro::Catalog> object. Where $scalar is a scalar
+holding a string representing an ARK Cluster Format file.
 
 =cut
 
@@ -467,17 +470,36 @@ sub configure {
     @{$self->{STARS}} = @{$args{Stars}};
     
   } elsif ( defined $args{Cluster} ) {
-  
+      
     # build from Cluster file    
     my $file_name = $args{Cluster};
-    unless ( open( FILE, "$file_name" ) ) {
+    unless ( open( CAT, $file_name ) ) {
        croak("Astro::Catalog - Cannont open ARK Cluster file $file_name");
     }     
-    close(FILE);
+    # read from file   
+    $/ = "\n";
+    my @catalog = <CAT>;
+    close(CAT);
+    chomp @catalog;
+   
+    #print "File is $file_name\n";
+   
+    #print "Grabbed " . $#catalog . " lines of cluster catalog\n";
+    #foreach my $loop ( 0 ... $#catalog ) {
+    #   print "$loop# " . $catalog[$loop] . "\n";
+    #}
+    
+    # read catalogue
+     _read_cluster( $self, @catalog ); 
+        
+  } elsif ( defined $args{Scalar} ) {
+  
+    # Split the catalog out from its single scalar
+    my @catalog = split( /\n/, $args{Scalar} );
 
     # read catalogue from file
-     _read_cluster( $self, $file_name );    
-    
+     _read_cluster( $self, @catalog );    
+        
   } else {
   
      # no build arguements
@@ -530,38 +552,25 @@ These methods are for internal use only.
 
 =itemB<_read_cluster>
 
-Reads and parses an ARK Format Cluster file into the object.
+Reads and parses a scalar containing an ARK Format Cluster file into the object.
 
 =cut
 
 sub _read_cluster {
    my $self = shift;
-   
-   # croak unless we have arguments
-   croak ("Astro::Catalog read_catalog() - No filename provided" ) unless @_;
-    
-   # build from Cluster file
-   my $file_name = shift;
-      
-   unless ( open( FILE, $file_name ) ) {
-       croak("Astro::Catalog - Cannont open ARK Cluster file $file_name");
-   } 
-   
-   # read from file   
-   my @file = <FILE>;
-   chomp @file;
-   close(FILE);
-   
-   # loop through file
-   foreach my $i ( 3 .. $#file ) {
+   my @catalog = @_;
+
+   # loop through catalog
+   foreach my $i ( 3 .. $#catalog ) {
  
       # remove leading spaces
-      $file[$i] =~ s/^\s+//;
+      $catalog[$i] =~ s/^\s+//;
 
       # split each line
-      my @separated = split( /\s+/, $file[$i] );
+      my @separated = split( /\s+/, $catalog[$i] );
  
       # debugging (leave in)
+      #print "$i # id $separated[1]\n";
       #foreach my $thing ( 0 .. $#separated ) {
       #   print "   $thing # $separated[$thing] #\n";
       #}
@@ -588,8 +597,8 @@ sub _read_cluster {
       $star->y( $separated[9] );
       
       # number of magnitudes and colours
-      $file[1] =~ s/^\s+//;
-      my @colours = split( /\s+/, $file[1] );
+      $catalog[1] =~ s/^\s+//;
+      my @colours = split( /\s+/, $catalog[1] );
       
       my @quality;
       foreach my $j ( 0 .. $#colours ) {
