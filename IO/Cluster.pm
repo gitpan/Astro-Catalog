@@ -32,16 +32,18 @@ use Astro::Catalog;
 use Astro::Catalog::Star;
 use Astro::Coords;
 
+use base qw/ Astro::Catalog::IO::ASCII /;
+
 use Data::Dumper;
 
-'$Revision: 1.11 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.13 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 
 # C O N S T R U C T O R ----------------------------------------------------
 
 =head1 REVISION
 
-$Id: Cluster.pm,v 1.11 2003/10/30 17:07:11 aa Exp $
+$Id: Cluster.pm,v 1.13 2005/03/31 01:24:53 cavanagh Exp $
 
 =begin __PRIVATE_METHODS__
 
@@ -323,7 +325,7 @@ sub _write_catalog {
      }
      
      #if ( defined ${$stars}[$star]->id() && 
-     #     looks_like_number( ${$stars}[$star]->id() ) ) {
+     #     Scalar::Util::looks_like_number( ${$stars}[$star]->id() ) ) {
      #   $output_line = $output_line . ${$stars}[$star]->id() . "  ";
      #} else {
         $output_line = $output_line . $star . " ";

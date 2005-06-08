@@ -1,24 +1,28 @@
+# http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Astro-Catalog
-version:      3.5.1
+version:      3.9.9
 version_from: 
 installdirs:  site
 requires:
-    Astro::Coords:                 0.05
-    Pod::Usage:                    1.14
-    Data::Dumper:                  2.12
+    Astro::Coords:                 0.07
+    Astro::FITS::CFITSIO:          1.03
     Astro::SLA:                    0.96
-    File::Spec:                    0.84
-    Time::Piece:                   1.08
+    Astro::Telescope:              0.5
+    Astro::VO::VOTable:            0.01
     Carp:                          1.01
-    SOAP::Lite:                    0
-    Math::Libm:                    1
-    Test::More:                    0.47
-    Test:                          1.24
-    VOTable:                       0.01
+    Class::Struct:                 0.63
+    Data::Dumper:                  2.12
+    File::Spec:                    0.84
+    File::Temp:                    0.14
     LWP:                           5.53
     Net::Domain:                   2.13
-    Astro::Telescope:              0.5
+    Pod::Usage:                    1.14
+    Scalar::Util:                  1.14
+    SOAP::Lite:                    0
+    Test:                          1.24
+    Test::More:                    0.47
+    Time::Piece:                   1.08
 
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.10_07
+generated_by: ExtUtils::MakeMaker version 6.17

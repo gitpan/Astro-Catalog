@@ -30,6 +30,8 @@ use Astro::Catalog;
 use Astro::Catalog::Star;
 use Astro::Coords;
 
+use base qw/ Astro::Catalog::IO::ASCII /;
+
 $DEBUG = 0;
 $VERSION = '0.03';
 
@@ -506,10 +508,11 @@ sub _parse_line {
 
 =back
 
+=end __PRIVATE_METHODS__
 
 =head1 REVISION
 
- $Id: TST.pm,v 1.10 2003/09/25 21:27:50 aa Exp $
+ $Id: TST.pm,v 1.12 2005/03/31 01:24:53 cavanagh Exp $
 
 =head1 FORMAT
 
@@ -523,7 +526,7 @@ L<Astro::Catalog>, L<Astro::Catalog::IO::Simple>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2003 Particle Physics and Astronomy Research Council.
+Copyright (C) 2003-2004 Particle Physics and Astronomy Research Council.
 All Rights Reserved.
 
 This module is free software; you can redistribute it and/or modify it

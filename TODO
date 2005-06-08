@@ -1,0 +1,32 @@
+
+To Do (8th June 2004)
+---------------------
+
+ * Replace exisiting magnitude, colour and error API with handlers for the 
+   new Astro::Fluxes objects.
+   
+ * Move Astro::Catalog::Star objects to the new Astro::Catalog::Item object,
+   retain Astro::Catalog::Star as an empty sub-class of the new Item object
+   for backwards compatibility.
+   
+ * Introduce support for quality flags with Astro::Catalog::Item::Quality  
+   object.
+   
+ * Fix things so all "values" are represented by the new Number::Uncertainty
+   object and can have associated errors.  
+  
+ * Add output support for FITS binary tables. 
+   
+ * Support the VOTable V1.1 standard.
+ 
+ * Fix Astro::Catalog::Query::CMC module to correctly parse the CMC TST files,
+   currently support is somewhat broken.
+ 
+ * Add writing support for TST files to Astro::Catalog::IO::TST
+
+ * Fix Astro::Catalog::Query::SkyCat and Astro::Catalog::Query::Vizier to
+   be truely generic (or at least work in more cases out of the box).
+   
+ * Change Astro::Catalog::Query::Vizier to use VOTables for easier parsing?
+    
+ * Add further catalogue query classes?

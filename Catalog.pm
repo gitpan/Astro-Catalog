@@ -19,7 +19,7 @@ package Astro::Catalog;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Catalog.pm,v 1.40 2003/10/17 11:35:35 aa Exp $
+#     $Id: Catalog.pm,v 1.52 2005/06/08 01:03:18 aa Exp $
 
 #  Copyright:
 #     Copyright (C) 2002 University of Exeter. All Rights Reserved.
@@ -50,8 +50,9 @@ scalar, glob or array.
 
 =head1 FORMATS
 
-For input the C<Astro::Catalog> module understands Cluster, Simple, JCMT,
-TST and (a very simple parsing) of VOTable.
+For input the C<Astro::Catalog> module understands Cluster, Simple,
+JCMT, TST, STL, GaiaPick, the UKIRT internal Bright Star catalogue
+format and (a very simple parsing) of VOTable.
 
 The module can output all of these formats except TST (which is input only).
 
@@ -71,7 +72,7 @@ use Astro::Catalog::Star;
 use Time::Piece qw/ :override /;
 use Carp;
 
-'$Revision: 1.40 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.52 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 $DEBUG = 0;
 
 
@@ -79,7 +80,7 @@ $DEBUG = 0;
 
 =head1 REVISION
 
-$Id: Catalog.pm,v 1.40 2003/10/17 11:35:35 aa Exp $
+$Id: Catalog.pm,v 1.52 2005/06/08 01:03:18 aa Exp $
 
 =head1 METHODS
 
@@ -113,6 +114,8 @@ sub new {
                       RADIUS => undef,
 		      REFPOS => undef,
 		      REFTIME => undef,
+                      FIELDDATE => undef,
+		      AUTO_OBSERVE => 0,
 		    }, $class;
 
   # If we have arguments configure the object
@@ -387,8 +390,8 @@ sub popstarbyid {
   # twice and we generate a whole new array internally
   # Do not force copy of allstars array yet
   my @current = $self->stars;
-  my @match = grep { defined $_ && defined $_->id && $_->id == $id } @current;
-  my @unmatched = grep { defined $_ && defined $_->id && $_->id != $id } 
+  my @match = grep { defined $_ && defined $_->id && $_->id eq $id } @current;
+  my @unmatched = grep { defined $_ && defined $_->id && $_->id ne $id } 
     @current;
 
   @{ $self->stars } = @unmatched;
@@ -576,10 +579,17 @@ sub get_ra {
   my $self = shift;
   my $c = $self->get_coords;
   return unless defined $c;
-  my $ra = $c->ra(format => 'sex');
-  $ra =~ s/:/ /g;
-  $ra =~ s/^\s*//;
-  return $ra;
+  my $ra = $c->ra;
+  if( UNIVERSAL::isa( $ra, "Astro::Coords::Angle" ) ) {
+    $ra->str_delim( ' ' );
+    $ra->str_ndp( 2 );
+    return "$ra";
+  } else {
+    $ra = $c->ra( format => 's' );
+    $ra =~ s/:/ /g;
+    $ra =~ s/^\s*//;
+    return $ra;
+  }
 }
 
 =item B<get_dec>
@@ -595,12 +605,21 @@ sub get_dec {
   my $self = shift;
   my $c = $self->get_coords;
   return unless defined $c;
-  my $dec = $c->dec(format => 'sex');
-  $dec =~ s/:/ /g;
-  $dec =~ s/^\s*//;
-  # prepend sign if there is no sign
-  $dec = (substr($dec,0,1) eq '-' ? '' : '+' ) . $dec;
-  return $dec;
+  my $dec = $c->dec;
+  if( UNIVERSAL::isa( $dec, "Astro::Catalog::Angle" ) ) {
+    $dec->str_delim( ' ' );
+    $dec->str_ndp( 2 );
+    $dec = "$dec";
+    $dec = ( substr( $dec, 0, 1 ) eq '-' ? '' : '+' ) . $dec;
+    return $dec;
+  } else {
+    $dec = $c->dec( format => 's' );
+    $dec =~ s/:/ /g;
+    $dec =~ s/^\s*//;
+    # prepend sign if there is no sign
+    $dec = (substr($dec,0,1) eq '-' ? '' : '+' ) . $dec;
+    return $dec;
+  }
 }
 
 =item B<get_radius>
@@ -698,6 +717,53 @@ sub reftime {
   return $retval;
 }
 
+=item B<fielddate>
+
+The observation date/time of the field.
+
+  $fielddate = $src->fielddate;
+
+  $src->fielddate( $date );
+
+Date must be a C<Time::Piece> object. This defaults to the current
+time when the C<Astro::Catalog> object was instantiated.
+
+=cut
+
+sub fielddate {
+  my $self = shift;
+
+  if( @_ ) {
+    my $val = shift;
+    if( defined( $val ) ) {
+      if( UNIVERSAL::isa( $val, "Time::Piece" ) ) {
+        $self->{FIELDDATE} = $val;
+      } else {
+        croak "Must supply field date as a Time::Piece object";
+      }
+    }
+  }
+
+  return $self->{FIELDDATE};
+}
+
+=item B<auto_filter_observability>
+
+If this flag is true, a reset_list will automatically remove targets
+that are not observable (as determined by C<filter_by_observability>
+which will be invoked).
+
+Default is false.
+
+=cut
+
+sub auto_filter_observability {
+  my $self = shift;
+  if (@_) {
+    $self->{AUTO_OBSERVE} = shift;
+  }
+  return $self->{AUTO_OBSERVE};
+}
 
 
 # C O N F I G U R E -------------------------------------------------------
@@ -784,67 +850,11 @@ sub configure {
     my $ioclass = _load_io_plugin( $args{format} );
     return unless defined $ioclass;
 
-    # Lines for the content
-    my @lines;
-
-    # Now need to either look for some data or read a file
-    if ( defined $args{data}) {
-
-      # Need to extract the data from this and convert to array
-      if (not ref($args{data})) {
-	# must be a scalar
-	@lines = split /\n/, $args{data};
-      } else {
-	if (ref($args{data}) eq 'GLOB') {
-	  # A file handle
-	  local $/ = "\n";
-	  # For some reason <$args{data}> does not do the right thing
-	  my $fh = $args{data};
-	  @lines = <$fh>;
-	} elsif (ref($args{data}) eq 'ARRAY') {
-	  # An array of lines
-	  @lines = @{ $args{data} };
-	} else {
-	  # Who knows
-	  croak "Can not extract catalog information from scalar of type ".
-	    ref($args{data}) ."\n";
-	}
-      }
-
-    } else {
-      # Look for a filename or the default file
-      my $file;
-      if ( defined $args{file} ) {
-	$file = $args{file};
-      } else {
-	# Need to ask for the default file
-	$file = $ioclass->_default_file()
-	  if $ioclass->can( '_default_file' );
-	croak "Unable to read catalogue since no file specified and ".
-	  "no default known." unless defined $file;
-      }
-
-      # Open the file
-      my $CAT;
-      croak("Astro::Catalog - Cannot open catalogue file $file: $!")
-	unless open( $CAT, "< $file" );
-
-      # read from file
-      local $/ = "\n";
-      @lines = <$CAT>;
-      close($CAT);
-
-    }
-
-    # remove new lines
-    chomp @lines;
-
-    # Read Catalog options passed in from caller
-    my $readopt = (defined $args{readopt} ? $args{readopt} : {} );
-
     # Now read the catalog (overwriting $self)
     print "# READING CATALOG $ioclass \n" if $DEBUG;
-    $self =  $ioclass->_read_catalog( \@lines, %$readopt);
+    $self = $ioclass->read_catalog( File => $args{file},
+                                    Data => $args{data},
+                                    ReadOpt => $args{readopt} );
 
     croak "Error reading catalog of class $ioclass\n"
       unless defined $self;
@@ -872,6 +882,11 @@ sub configure {
     $self->$method( $args{$key} ) if $self->can($method);
   }
 
+  if( ! defined( $self->fielddate ) ) {
+    my $date = gmtime;
+    $self->fielddate( $date );
+  }
+
   return $self;
 }
 
@@ -882,6 +897,9 @@ list.
 
   $catalog->reset_list();
 
+If C<auto_filter_observability> is true, the list will be immediately
+filtered for observability.
+
 =cut
 
 sub reset_list {
@@ -890,6 +908,11 @@ sub reset_list {
   # Simply need to clear the CURRENT
   $self->{CURRENT} = undef;
 
+  # and filter automatically if required
+  $self->filter_by_observability
+    if $self->auto_filter_observability;
+
+  return;
 }
 
 =item B<force_ref_time>
@@ -943,20 +966,20 @@ coordinates are also filtered.  Starts from the current star list
   @new = $catalog->filter_by_observability();
 
 Returns the newly selected stars (as if the C<stars> method was called
-immediately.
+immediately, unless called in a non-list context.
 
 =cut
 
 sub filter_by_observability {
   my $self = shift;
 
-  $self->forceRefTime;
+  $self->force_ref_time;
   my $ref = $self->stars;
 
   # For each star, extract the coordinate object and, if defined
   # check for observability
   @$ref = grep { $_->coords->isObservable } grep { $_->coords; } @$ref;
-  return $self->stars;
+  return $self->stars if wantarray;
 }
 
 =item B<filter_by_id>
@@ -987,7 +1010,10 @@ sub filter_by_id {
   my $id = shift;
 
   # Convert to regex if required
-  $id = qr/$id/i unless ref $id;
+  if (not ref($id)) {
+    $id = quotemeta( $id );
+    $id = qr/$id/i;
+  }
 
   return $self->filter_by_cb( sub { $_[0]->id =~ $id; });
 
@@ -1138,7 +1164,7 @@ sub sort_catalog {
 
     # Just sort it all
     @$stars = sort $mode, @$stars;
-
+    
   } else {
 
     # see if we have a reference object
@@ -1172,7 +1198,7 @@ sub sort_catalog {
     # Array to hold the sorted hashes
     my @rSources;
 
-    # Now do the search
+    # Now do the sort
     if ($sort =~ /(name|id)/) {
       @rSources = sort  by_id @unsorted;
     } elsif ($sort =~ /ra/) {
@@ -1365,6 +1391,12 @@ sub _load_io_plugin {
   $format = 'JCMT' if $format eq 'Jcmt';
   $format = 'TST'  if $format eq 'Tst';
   $format = 'VOTable' if $format eq 'Votable';
+  $format = 'STL'  if $format eq 'Stl';
+  $format = 'GaiaPick' if $format eq 'Gaiapick';
+  $format = 'UKIRTBS' if $format eq 'Ukirtbs';
+  $format = 'SExtractor' if $format eq 'Sextractor';
+  $format = 'FINDOFF' if $format eq 'Findoff';
+  $format = 'FITSTable' if $format eq 'Fitstable';
 
   my $class = "Astro::Catalog::IO::" . $format;
 
