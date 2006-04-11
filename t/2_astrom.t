@@ -1,7 +1,7 @@
 #!perl
 
 # Astro::Catalog test harness
-use Test::More tests => 15;
+use Test::More tests => 16;
 
 use strict;
 use File::Spec;
@@ -76,7 +76,7 @@ for( my $i = 0; $i < @written_cat; $i++ ) {
 unlink $tempfile;
 
 __DATA__
-~ ASTR
+~ GENE 0.0
 ~ 19 04 00.0 -65 00 00.00 J2000 2000.0
 18 56 39.4 -63 25 13.23 J2000 2000.0
 44.791 85.643
@@ -86,3 +86,4 @@ __DATA__
 17.246 64.945
 19 08 29.1 -63 57 42.79 J2000 2000.0
 -25.314 57.456
+END

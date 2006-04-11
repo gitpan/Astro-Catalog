@@ -1,3 +1,189 @@
+2006-03-30  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Catalog.pm: Introduce IDS hash internal to Catalog object to
+	speed up popstarbyid(). Add calc_xy() method to speed up
+	calculation of x and y positions for all objects in a catalogue.
+
+	* IO/RITMatch.pm, t/2_ritmatch.t: Add support for the RIT Match
+	application.
+
+	* t/2_tst.t: Change number of tests from 8 to 10. Fix output when
+	checking ID, RA, and Dec.
+
+	* t/4_mpc.t: Update list of asteroids to avoid spurious fails.
+
+2006-03-15  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* IO/SExtractor.pm: Support write_catalog() method for
+	SExtractor-style catalogues.
+
+	* t/2_sextractor.t: Add tests for catalogue writing.
+
+	* IO/TST: Support write_catalog() method for tab-separated text
+	file catalogues.
+
+	* t/2_tst.t: Add tests for catalogue writing.
+
+2006-01-17  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Item/Item.pm: Fix get_magnitude() and get_errors() for case
+	where magnitude isn't defined in Item.
+
+	* t/2_cluster.t: Fix test to reflect earlier fixes in
+	IO/Cluster.pm from 2005-11-03.
+
+	* t/helper.t: Sort filters and colours so that filter and colour
+	matching works properly.
+
+	* IO/Cluster.pm: Do not define x or y if either is 0.000 in the
+	file when reading (to make up for Cluster format files not having
+	undefined values).
+	
+2006-01-13  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+  * IO/Astrom.pm: Go with a generic image instead of one from
+  an astrograph.
+
+  * Item/Item.pm: Add extra check when undefining WCS so that
+  WCS actually becomes undefined if desired.
+
+2005-11-15  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Catalog.pm: Add preferred_magnitude_type() method. Speed up
+	popstarbyid() by a factor of 2.
+
+	* IO/Cluster.pm: Do not call various Item methods twice to help
+	speed up writing of catalogues.
+
+	* IO/SExtractor: Allow user to request objects with a specific
+	quality flag.
+	
+2005-11-03  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* IO/Cluster.pm: Filter filters and colours for uniqueness before
+	writing catalogue.
+
+	* Item/Item.pm: Add preferred_mag_type() method.
+
+	* IO/SExtractor.pm: Add support for Starlink X/Y_PIXEL parameters.
+
+2005-10-26  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Item/Item.pm: Add get_flux_quantity() and get_flux_error()
+	wrapper functions.
+
+	* IO/SExtractor.pm: Turn off debugging, use Astro::Catalog::Item
+	instead of Astro::Catalog::Star.
+
+2005-10-24  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Item/Morphology/Morphology.pm: Fix bug when setting values with
+	'undef'.
+
+2005-10-21  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+  * Item/Morphology/Morphology.pm: Use Number::Uncertainty for all
+    values.
+
+2005-09-13  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+  * IO/Cluster.pm: Fix bug when more than one measurement for a given
+    waveband is present in a catalogue.
+
+  * t/2_cluster.t: Add tests.
+
+  * t/3_item.t: Modify distance check to use two decimal places
+    instead of one. This is done to avoid differences in rounding x.5
+    between different platforms.
+
+  * t/helper.pl: Check to make sure item is an Astro::Catalog::Item
+    object instead of an Astro::Catalog::Star object.
+
+2005-09-12  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+  * Item/Item.pm: Fix bug when adding more than one flux measurement.
+
+  * IO/STL.pm: Add _write_catalog method.
+
+  * IO/SExtractor.pm: Read in flux counts if available in catalogue.
+
+  * IO/Astrom.pm: Do not write ~ at beginning of ASTR line.
+
+2005-08-04  Tim Jenness  <tjenness@cpan.org>
+
+	* IO/ASCII.pm: Reinstate 'default' logic
+
+	* IO/JCMT.pm: Add support for ASTRO_CATALOG_JCMT environment
+	variable for default catalogue location.
+
+2005-07-25 Alasdair Allan <aa@astro.ex.ac.uk> 
+
+	* Query/Query/Sesame.pm: Added more error handling!
+
+2005-07-08  Brad Cavanagh  <b.cavanagh@jach.hawaii.edu>
+
+	* Catalog.pm: Rework sorting so that only specific values
+	are calculated depending on if that type of sort is being
+	done (i.e. if sorting by 'ra', only the RA is calculated
+	and not azimuth, elevation, etc).
+
+2005-07-01  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* IO/JCMT.pm: Now read/write Velocity information 
+
+2005-06-26 Alasdair Allan <aa@astro.ex.ac.uk> 
+
+        * Query/Query/Sesame.pm: Fixed problems with Sesame endpoint.
+	
+2005-06-24 Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* IO/FITSTable.pm: Modified to use flux measurements directly
+	  instead of importing a specific one into a magnitude. Added
+	  support for reading DATE-OBS header to apply timestamp for
+	  flux measurements.
+
+2005-06-23 Alasdair Allan <aa@astro.ex.ac.uk> 
+
+        * Fixed after slight breakage from modifications to Astro::Flux
+	
+2005-06-20 Alasdair Allan <aa@astro.ex.ac.uk> 
+
+        * Item.pm: Added fluxdatestamp() function which allows you to append
+	  a time stamp to all the Astro::Flux objects held in the Item. Also
+	  addeddistancetostar() and within() methods to allow us to easily
+	  figure out if one star is close to another.
+	  
+	* t/4_mpc.t: Updated tests again. Must be better way to do this?   
+	
+2005-06-16 Alasdair Allan <aa@astro.ex.ac.uk>  (Version 4.0)
+
+        * Query/Query/*.pm: All query classes updated. The package passes
+	  all test, however many parts of the test suite do not have anything
+	  like full coverage. I think we have to expect some bugs at this
+	  stage.Theoretically fully working Astro::Catalog distribution
+	  however, so lets badge this as V4.
+
+2005-06-15 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Basic fixes to Catalog.pm and IO/Cluster.pm to support the new
+	  changes. Hopefully this will provide a springboard so I can fix
+	  the rest of the IO and Query modules. This is a big job...
+	  
+	* IO/*.pm: All IO classes working, I think?  
+
+2005-06-12 Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Series of changes breaking backwards compatibility in Item.pm to
+	  support the new Astro::Fluxes objects and Number::Uncertainty for
+	  magnitude and colour support. These changes break all other classes
+	  in the package.
+
+2005-06-04  Alasdair Allan <aa@astro.ex.ac.uk>
+
+        * Removed Astro::Catalog::Star and Astro::Catalog::Star::Morphology
+	  and replaces with corresponding Item classes. The Star classes are
+	  retained as empty-subclasses for backwards compatibility.
+
 2005-06-04  Alasdair Allan <aa@astro.ex.ac.uk> (Version 3.9.9)
 
         * Updated documentation and released as version 3.9.9

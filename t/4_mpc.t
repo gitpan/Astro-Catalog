@@ -8,6 +8,10 @@ use strict;
 use Test::More tests => 202;
 use Data::Dumper;
 
+use Astro::Flux;
+use Astro::Fluxes;
+use Number::Uncertainty;
+
 # Catalog modules need to be loaded first
 BEGIN {
   use_ok( "Astro::Catalog::Star");
@@ -50,8 +54,9 @@ foreach my $line ( 0 .. $#buffer ) {
     $star->id( $name );
 
     $vmag =~ s/^\s+//;
-    my %vmag = ( V => $vmag );
-    $star->magnitudes( \%vmag );
+
+    $star->fluxes( new Astro::Fluxes( new Astro::Flux( new Number::Uncertainty( Value => $vmag ),
+                                                       'mag', "V" )));
 
     $comment =~ s/^\s+//;
     $star->comment( $comment );
@@ -95,19 +100,22 @@ my $mpc_byname = new Astro::Catalog::Query::MPC( RA => "07 13 42",
                                                  Day => 1.87, );
 
 print "# Connecting to MPC Minor Planet Checker\n";
-my $catalog_byname = $mpc_byname->querydb();
-print "# Continuing tests\n";
+my $catalog_byname;
+eval { $catalog_byname = $mpc_byname->querydb() };
+SKIP: {
+  skip "Cannot connect to MPC website", 199 unless ! $@;
+  print "# Continuing tests\n";
 
 # C O M P A R I S O N ------------------------------------------------------
 
-# check sizes
-print "# DAT has " . $catalog_data->sizeof() . " stars\n";
-print "# NET has " . $catalog_byname->sizeof() . " stars\n";
+  # check sizes
+  print "# DAT has " . $catalog_data->sizeof() . " stars\n";
+  print "# NET has " . $catalog_byname->sizeof() . " stars\n";
 
-# Compare catalogues
-compare_mpc_catalog( $catalog_byname, $catalog_data);
+  # Compare catalogues
+  compare_mpc_catalog( $catalog_byname, $catalog_data);
 
-#print join("\n",$mpc_byname->_dump_raw)."\n";
+} # End SKIP
 
 # quitting time
 exit;
@@ -115,17 +123,17 @@ exit;
 # D A T A   B L O C K  -----------------------------------------------------
 # Name                   RA         Dec       V_mag raoff  decoff pm_ra pm_dec orbits  comment
 __DATA__
-(32467) 2000 SL174       07 19 03.9 -12 33 12  19.1  78.1E  88.8N     6-    12+   10o  None needed at this time.
-(15834) 1995 CT1         07 23 32.1 -12 49 19  18.3 143.1E  72.7N    16-     4+    8o  None needed at this time.
-(75285) 1999 XY24        07 05 57.8 -12 04 35  18.0 112.6W 117.4N     0+    22+    5o  None needed at this time.
- (4116) Elachi           07 18 19.2 -10 57 47  15.6  67.2E 184.2N    14+    65+   11o  None needed at this time.
-(24972) 1998 FC116       07 28 20.7 -13 36 55  18.8 213.1E  25.1N     4-    31+    8o  None needed at this time.
-        1999 XA6         07 22 00.4 -17 06 40  19.2 120.9E 184.7S    13+    20+    2o  Desirable between 2005 June 4-July 4.  (151.4,-10.1,21.3)
-        2000 KK60        07 14 28.6 -09 57 14  20.0  11.3E 244.8N     7-    16+    4o  Very desirable between 2005 June 4-July 4.  (113.0,-15.2,19.6)
-        2002 TT191       07 17 00.3 -09 58 39  20.0  48.1E 243.4N     6-    15+  111d  Desirable between 2005 June 4-19.  (100.7,-16.9,20.8)
-(30505) 2000 RW82        07 06 00.9 -10 20 39  18.6 111.8W 221.3N     4-    14+    7o  None needed at this time.
- (6911) Nancygreen       07 32 08.0 -14 26 28  15.5 268.2E  24.5S     0-    43+    9o  None needed at this time.
-        2003 BY18        07 22 16.1 -09 53 13  18.2 124.7E 248.8N     6-    13+    4o  Very desirable between 2005 June 4-July 4.  (120.0,-25.0,19.1)
-        2000 RS48        07 07 08.9 -09 38 15  19.5  95.3W 263.8N     4+    32+    3o  Desirable between 2005 June 17-July 17.  (117.8,+18.0,18.9)
-        1999 TM234       07 23 10.0 -09 57 32  18.9 137.8E 244.5N     7-    20+    2o  Desirable between 2005 June 4-July 4.  (125.3,-18.7,18.9)
-(54857) 2001 OY22        07 33 00.4 -15 42 45  19.2 281.0E 100.8S    13-    24+    7o  None needed at this time.
+(32467) 2000 SL174      07 19 09.3 -12 33 33  19.1  79.4E  88.5N     6-    12+   10o  None needed at this time.
+ (75285) 1999 XY24       07 06 17.0 -12 06 32  18.0 107.9W 115.5N     0+    22+    5o  None needed at this time.
+ (15834) McBride         07 23 45.8 -12 52 09  18.3 146.5E  69.9N    16-     4+    8o  None needed at this time.
+  (4116) Elachi          07 18 20.6 -10 57 31  15.6  67.6E 184.5N    14+    64+   12o  None needed at this time.
+ (24972) 1998 FC116      07 28 09.0 -13 36 50  18.8 210.3E  25.2N     4-    31+    8o  None needed at this time.
+         1999 XA6        07 22 33.0 -17 10 33  19.2 128.8E 188.6S    13+    20+    2o  Desirable between 2006 Mar. 30-Apr. 29.  At the first date, object will be within 60 deg of the sun.
+         2002 TT191      07 15 52.8 -09 58 09  20.0  31.7E 243.8N     6-    15+  111d  Desirable between 2006 Mar. 30-Apr. 14.  (132.1,-24.9,20.2)
+         2000 KK60       07 13 55.3 -09 56 02  20.0   3.2E 246.0N     6-    16+    4o  Desirable between 2006 Mar. 30-Apr. 29.  ( 86.1,-07.4,19.7)
+ (30505) 2000 RW82       07 06 07.3 -10 20 38  18.6 110.3W 221.4N     4-    14+    7o  None needed at this time.
+  (6911) Nancygreen      07 32 17.7 -14 26 49  15.5 270.6E  24.8S     0-    43+   10o  None needed at this time.
+(114533) 2003 BY18       07 21 19.7 -09 52 15  18.2 111.0E 249.7N     5-    13+    4o  None needed at this time.
+         1999 TM234      07 22 49.8 -09 56 50  18.9 132.9E 245.2N     7-    20+    2o  Desirable between 2006 Mar. 30-Apr. 29.  At the first date, object will be within 60 deg of the sun.
+         2000 RS48       07 07 17.2 -09 38 41  19.5  93.3W 263.3N     4+    32+    3o  Desirable between 2006 Mar. 30-Apr. 29.  At the first date, object will be within 60 deg of the sun.
+ (54857) 2001 OY22       07 33 08.1 -15 43 07  19.2 282.8E 101.1S    13-    24+    7o  None needed at this time.

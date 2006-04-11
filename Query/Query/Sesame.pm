@@ -31,11 +31,11 @@ use Astro::Coords;
 use Astro::Catalog;
 use Astro::Catalog::Star;
 
-'$Revision: 1.6 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.9 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 
 =head1 REVISION
 
-$Id: Sesame.pm,v 1.6 2005/06/08 01:08:49 aa Exp $
+$Id: Sesame.pm,v 1.9 2005/07/25 07:45:49 aa Exp $
 
 =head1 METHODS
 
@@ -73,16 +73,17 @@ sub querydb {
   return undef unless $self->query_options("object");
 
   # make sesame query
+  #print "Endpoint: $endpoint\n";
   my $service = SOAP::Lite->service( $self->endpoint() );   
   
   my $ident = $self->query_options("object");
   $ident =~ s/\+/ /g;
   
   my $buffer; 
-  eval { $buffer = $service->Sesame( $ident ); };
+  eval { $buffer = $service->sesame( $ident, "u" ); };
   if ( $@ ) {
      my $status = $service->transport()->status();
-     croak("Error: $status");
+     croak("Error ($status): $@");
      return;
   }
  
@@ -105,7 +106,7 @@ These methods are for internal use only.
 =cut
 
 sub _default_endpoint {
-  return "http://cdsws.u-strasbg.fr/axis/Sesame.jws?wsdl";
+  return "http://cdsws.u-strasbg.fr/axis/services/Sesame?wsdl";
 }
 
 =item B<_default_urn>
@@ -194,7 +195,7 @@ sub _parse_query {
   my @result = $self->_dump_raw();
   chomp @result;
   
-  #use Data::Dumper; print Dumper( @result );
+  use Data::Dumper; print Dumper( @result );
   
   # Grab Coordinates
   # ----------------
@@ -210,6 +211,8 @@ sub _parse_query {
      }  
   }
   
+  croak "Can not understand response, no co-ordinate line found "
+      unless defined $coord_line;
   my $line = $result[$coord_line];
   
   # split it on \s+

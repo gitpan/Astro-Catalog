@@ -19,7 +19,7 @@ package Astro::Catalog;
 #    Alasdair Allan (aa@astro.ex.ac.uk)
 
 #  Revision:
-#     $Id: Catalog.pm,v 1.52 2005/06/08 01:03:18 aa Exp $
+#     $Id: Catalog.pm,v 1.57 2006/03/31 00:06:18 cavanagh Exp $
 
 #  Copyright:
 #     Copyright (C) 2002 University of Exeter. All Rights Reserved.
@@ -44,7 +44,7 @@ Astro::Catalog - A generic API for stellar catalogues
 
 Stores generic meta-data about an astronomical catalogue. Takes a hash
 with an array refernce as an argument. The array should contain a list
-of Astro::Catalog::Star objects. Alternatively it takes a catalog
+of Astro::Catalog::Item objects. Alternatively it takes a catalog
 format and either the name of a catalogue file or a reference to a
 scalar, glob or array.
 
@@ -68,11 +68,11 @@ use warnings::register;
 use vars qw/ $VERSION $DEBUG /;
 
 use Astro::Coords;
-use Astro::Catalog::Star;
+use Astro::Catalog::Item;
 use Time::Piece qw/ :override /;
 use Carp;
 
-'$Revision: 1.52 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
+'$Revision: 1.57 $ ' =~ /.*:\s(.*)\s\$/ && ($VERSION = $1);
 $DEBUG = 0;
 
 
@@ -80,7 +80,7 @@ $DEBUG = 0;
 
 =head1 REVISION
 
-$Id: Catalog.pm,v 1.52 2005/06/08 01:03:18 aa Exp $
+$Id: Catalog.pm,v 1.57 2006/03/31 00:06:18 cavanagh Exp $
 
 =head1 METHODS
 
@@ -107,16 +107,18 @@ sub new {
 
   # bless the query hash into the class
   my $block = bless { ALLSTARS  => [],
-		      CURRENT   => undef, # undefined until we copy
-		      ERRSTR => '',
-		      ORIGIN => 'UNKNOWN',
-		      COORDS => undef,
+                      CURRENT   => undef, # undefined until we copy
+                      ERRSTR => '',
+                      ORIGIN => 'UNKNOWN',
+                      COORDS => undef,
                       RADIUS => undef,
-		      REFPOS => undef,
-		      REFTIME => undef,
+                      REFPOS => undef,
+                      REFTIME => undef,
                       FIELDDATE => undef,
-		      AUTO_OBSERVE => 0,
-		    }, $class;
+                      AUTO_OBSERVE => 0,
+                      PREFERRED_MAG_TYPE => undef,
+                      IDS => {},
+                    }, $class;
 
   # If we have arguments configure the object
   # Note that configuration can result in a new object
@@ -281,6 +283,25 @@ sub errstr {
   return $self->{ERRSTR};
 }
 
+=item B<preferred_magnitude_type>
+
+Set or return the preferred magnitude type to be returned from the
+Astro::Catalog::Item->get_magnitude() method.
+
+  my $type = $catalog->preferred_magnitude_type;
+  $catalog->preferred_magnitude_type( 'MAG_ISO' );
+
+=cut
+
+sub preferred_magnitude_type {
+  my $self = shift;
+  if( @_ ) {
+    my $type = shift;
+    $self->{PREFERRED_MAG_TYPE} = $type;
+  }
+  return $self->{PREFERRED_MAG_TYPE};
+}
+
 =item B<sizeof>
 
 Return the number of stars in the catalogue (post filter).
@@ -329,6 +350,13 @@ sub pushstar {
   # push onto the original array
   push( @$allref, @_ );
 
+  # Update the IDs hash.
+  foreach my $star ( @_ ) {
+    if( defined( $star->id ) ) {
+      $self->{IDS}->{$star->id}++;
+    }
+  }
+
   # And push onto the copy ONLY IF WE HAVE A COPY
   # We do not want to force a copy unnecsarily by using scalar context
   if ($self->_have_copy) {
@@ -347,7 +375,7 @@ version is unchanged).
 
    $star = $catalog->popstar();
 
-the method deletes the star and returns the deleted C<Astro::Catalog::Star>
+the method deletes the star and returns the deleted C<Astro::Catalog::Item>
 object.
 
 =cut
@@ -355,23 +383,28 @@ object.
 sub popstar {
   my $self = shift;
 
+  my $star = pop( @{$self->stars} );
+  if( defined( $star->id ) ) {
+    $self->{IDS}->{$star->id}--;
+  }
+
   # pop the star out of the stack
-  return pop( @{ $self->stars } );
+  return $star;
 }
 
 =item B<popstarbyid>
 
-Return C<Astro::Catalog::Star> objects that have the given ID. This forces
+Return C<Astro::Catalog::Item> objects that have the given ID. This forces
 a copy of the array if one has not already been made (ie the original
 version is unchanged).
 
   @stars = $catalog->popstarbyid( $id );
 
-The method deletes the stars and returns the deleted C<Astro::Catalog::Star>
+The method deletes the stars and returns the deleted C<Astro::Catalog::Item>
 objects. If no star exists with the given ID, the method returns empty list.
 
 If called in scalar context this method returns an array reference, and if
-called in list context returns an array of C<Astro::Catalog::Star> objects.
+called in list context returns an array of C<Astro::Catalog::Item> objects.
 
 This is effectively an inverse filter (see C<search_by_id> for complementary
 method).
@@ -386,17 +419,32 @@ sub popstarbyid {
 
   my $id = shift;
 
-  # This may need to be optimized because we traverse the array
-  # twice and we generate a whole new array internally
-  # Do not force copy of allstars array yet
-  my @current = $self->stars;
-  my @match = grep { defined $_ && defined $_->id && $_->id eq $id } @current;
-  my @unmatched = grep { defined $_ && defined $_->id && $_->id ne $id } 
-    @current;
+  # Return if we know that that star doesn't exist.
+  return () if ( ! $self->{IDS}->{$id} );
 
+  my @matched;
+  my @unmatched;
+  my $matched;
+  my @stars = $self->stars;
+  while ( @stars ) {
+    my $item = pop @stars;
+    if( defined( $item ) && defined( $item->id ) ) {
+      if( $item->id eq $id ) {
+        push @matched, $item;
+        $self->{IDS}->{$id}--;
+        last if ( 0 == $self->{IDS}->{$id} );
+      } else {
+        push @unmatched, $item;
+      }
+    } else {
+      push @unmatched, $item;
+    }
+  }
+
+  push @unmatched, @stars;
   @{ $self->stars } = @unmatched;
 
-  return ( wantarray ? @match : \@match );
+  return ( wantarray ? @matched : \@matched );
 
 }
 
@@ -412,16 +460,27 @@ In list context returns all the stars, in scalar context returns a reference
 to the internal array. This allows the primary array to be modified in place
 so use this with care.
 
+Addendum: This is pretty much for internal use only, but if you do this
+
+  $catalog->allstars( @stars );
+  
+you repalce the stars array with the array passed. Don't do this, it's bad!
+
 =cut
 
 sub allstars {
   my $self = shift;
+  
+  if (@_) {
+    @{$self->{ALLSTARS}} = @_;
+  }  
+  
   return (wantarray ? @{ $self->{ALLSTARS} } : $self->{ALLSTARS} );
 }
 
 =item B<stars>
 
-Return a list of all the C<Astro::Catalog::Star> objects that are currently
+Return a list of all the C<Astro::Catalog::Item> objects that are currently
 valid and in the current order. This method may well return different
 stars to the C<allstars> method depending on the current sort in scope.
 
@@ -461,7 +520,7 @@ sub stars {
 
 =item B<starbyindex>
 
-Return the C<Astro::Catalog::Star> object at index $index
+Return the C<Astro::Catalog::Item> object at index $index
 
    $star = $catalog->starbyindex( $index );
 
@@ -789,7 +848,7 @@ are:
           reference to array of lines or reference to glob (file handle).
           This key is used in preference to 'File' if both are present
 
-  Stars => Array of Astro::Catalog::Star objects. Supercedes all other options.
+  Stars => Array of Astro::Catalog::Item objects. Supercedes all other options.
   ReadOpt => Reference to hash of options to be forwarded onto the
              format specific catalogue reader. See the IO documentation
              for details.
@@ -943,6 +1002,46 @@ sub force_ref_time {
   }
 }
 
+=item B<calc_xy>
+
+Calculate the X and Y positions for every item in the catalog, if they
+have an RA and Dec.
+
+  $catalog->calc_xy( $frameset );
+
+The supplied argument must be a Starlink::AST::FrameSet.
+
+=cut
+
+sub calc_xy {
+  my $self = shift;
+  my $frameset = shift;
+
+  if( ! UNIVERSAL::isa( $frameset, "Starlink::AST::FrameSet" ) ) {
+    croak "Argument to calc_xy() must be a Starlink::AST::FrameSet object";
+  }
+
+  # Loop through the items, obtaining the RA and Dec in radians for
+  # each item.
+  my @ras;
+  my @decs;
+  foreach my $item ( $self->stars ) {
+    my ( $ra, $dec ) = $item->coords->radec();
+    push @ras, $ra->radians;
+    push @decs, $dec->radians;
+  }
+
+  # Do the calculations;
+  my( $xref, $yref ) = $frameset->Tran2( \@ras, \@decs, 0 );
+
+  # Loop through the items, pushing in the X and Y values.
+  my $i = 0;
+  foreach my $item ( $self->stars ) {
+    $item->x( $xref->[$i] );
+    $item->y( $yref->[$i] );
+    $i++;
+  }
+}
 
 =back
 
@@ -1170,6 +1269,9 @@ sub sort_catalog {
     # see if we have a reference object
     my $ref = $self->reference;
 
+    # down case
+    my $sort = lc($mode);
+
     # to try to speed up all the queries, rather than
     # calculating the dynamic values during the sort we should
     # do it outside the sort. Create an array of hashes for the
@@ -1178,22 +1280,20 @@ sub sort_catalog {
       my $c = $_->coords;
       return () unless defined $c;
       my %calc = (
-		  object => $_,
-		  ra => $c->ra_app,
-		  dec => $c->dec_app,
-		  az => $c->az,
-		  el => $c->el,
-		  id => $_->id,
-		 );
-      if ($ref) {
-	$calc{distance} = $ref->distance( $c );
-	$calc{distance} = "Inf" unless defined $calc{distance};
+                  object => $_,
+                 );
+		  $calc{ra} = $c->ra_app if $sort eq 'ra';
+		  $calc{dec} = $c->dec_app if $sort eq 'dec';
+		  $calc{az} = $c->az if $sort eq 'az';
+		  $calc{el} = $c->el if $sort eq 'el';
+		  $calc{id} = $_->id if ( $sort eq 'id' || $sort eq 'name' );
+
+      if ($ref && $sort eq 'distance') {
+        $calc{distance} = $ref->distance( $c );
+        $calc{distance} = "Inf" unless defined $calc{distance};
       }
       \%calc;
     } @$stars;
-
-    # down case
-    my $sort = lc($mode);
 
     # Array to hold the sorted hashes
     my @rSources;
@@ -1397,6 +1497,7 @@ sub _load_io_plugin {
   $format = 'SExtractor' if $format eq 'Sextractor';
   $format = 'FINDOFF' if $format eq 'Findoff';
   $format = 'FITSTable' if $format eq 'Fitstable';
+  $format = 'RITMatch' if $format eq 'Ritmatch';
 
   my $class = "Astro::Catalog::IO::" . $format;
 

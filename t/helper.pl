@@ -104,8 +104,8 @@ reference star.
 sub compare_star {
   my ($cmpstar, $refstar) = @_;
 
-  isa_ok( $refstar, "Astro::Catalog::Star", "Check ref star type");
-  isa_ok( $cmpstar, "Astro::Catalog::Star", "Check cmp star type");
+  isa_ok( $refstar, "Astro::Catalog::Item", "Check ref star type");
+  isa_ok( $cmpstar, "Astro::Catalog::Item", "Check cmp star type");
 
   is( $cmpstar->id(), $refstar->id(), "compare star ID" );
 
@@ -118,9 +118,9 @@ sub compare_star {
     ok( 0, "Error calculating star separation. Too far?");
   } else {
     # check that DR2AS is defined, at one stage it was not
-    my $check = Astro::Catalog::Star::DR2AS;
+    my $check = Astro::Catalog::Item::DR2AS;
     die "Error obtaining DR2AS" if not defined $check;
-    my $assep = $radsep * Astro::Catalog::Star::DR2AS;
+    my $assep = $radsep * Astro::Catalog::Item::DR2AS;
     ok( $assep < $maxsec, "compare distance between stars ($assep<$maxsec arcsec)" );
   }
 
@@ -137,28 +137,40 @@ sub compare_star {
     is($cmpstar->field, $refstar->field, "Compare field");
   }
 
-
   # Filter comparisons
   my @cmp_filters = $cmpstar->what_filters();
   my @ref_filters = $refstar->what_filters();
   is( scalar(@cmp_filters), scalar(@ref_filters), "compare filter count");
 
+  # Sort the filters.
+  @cmp_filters = sort @cmp_filters;
+  @ref_filters = sort @ref_filters;
+
   # Should loop over known filters rather than the filters
   # we got (just in case that is zero)
   foreach my $filter ( 0 ... $#ref_filters ) {
     is( $cmp_filters[$filter], $ref_filters[$filter],
-	"compare filter $ref_filters[$filter]" );
+        "compare filter $ref_filters[$filter]" );
     is( $cmpstar->get_magnitude($cmp_filters[$filter]),
-	$refstar->get_magnitude($ref_filters[$filter]),
-	"compare magnitude $ref_filters[$filter]");
+        $refstar->get_magnitude($ref_filters[$filter]),
+        "compare magnitude $ref_filters[$filter]");
     is( $cmpstar->get_errors($cmp_filters[$filter]),
-	$refstar->get_errors($ref_filters[$filter]),
-	"compare magerr $ref_filters[$filter]");
+        $refstar->get_errors($ref_filters[$filter]),
+        "compare magerr $ref_filters[$filter]");
   }
 
   my @cmp_cols = $cmpstar->what_colours();
   my @ref_cols = $refstar->what_colours();
+  
+  #use Data::Dumper;
+  #print Dumper( @cmp_cols );
+  #print Dumper( @ref_cols );
+  
   is(scalar(@cmp_cols), scalar(@ref_cols), "compare number of colors");
+
+  # Sort the colours.
+  @cmp_cols = sort @cmp_cols;
+  @ref_cols = sort @ref_cols;
 
   foreach my $col ( 0 ... $#ref_cols ) {
     is( $cmp_cols[$col], $ref_cols[$col],"compare color $ref_cols[$col]" );
@@ -203,8 +215,8 @@ sub compare_mpc_star {
 
   is( $cmpstar->id(), $refstar->id(), "compare star ID" );
 
-  # Distance is okay if we are within 60 arcsec
-  my $maxsec = 60;
+  # Distance is okay if we are within 120 arcsec
+  my $maxsec = 120;
   my $radsep = $refstar->coords->distance( $cmpstar->coords );
 
   if (!defined $radsep) {
@@ -212,9 +224,9 @@ sub compare_mpc_star {
     ok( 0, "Error calculating star separation. Too far?");
   } else {
     # check that DR2AS is defined, at one stage it was not
-    my $check = Astro::Catalog::Star::DR2AS;
+    my $check = Astro::Catalog::Item::DR2AS;
     die "Error obtaining DR2AS" if not defined $check;
-    my $assep = $radsep * Astro::Catalog::Star::DR2AS;
+    my $assep = $radsep * Astro::Catalog::Item::DR2AS;
     ok( $assep < $maxsec, "compare distance between stars ($assep<$maxsec arcsec)" );
   }
 
