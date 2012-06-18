@@ -1,0 +1,20 @@
+
+Release Notes
+=============
+
+For more detail please see the commit log at
+
+  https://github.com/timj/perl-Astro-Catalog
+
+v4.2
+
+  + The MPC web service seems to have changed so MPC is not functioning
+    in this release.
+
+  - Added FITSTable, ASSM, NorthStar, Binary, RITMatch, XY
+    and LCOGFITSTable formats.
+  - Now uses Module::Build
+  - SuperCOSMOS and SIMBAD query classes have been removed since the
+    remote format has changed.
+  - Updated skycat.cfg file.
+  - Astro::VO::VOTable is now an optional module.

@@ -8,10 +8,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 1339;
-use Astro::SLA;
+use Test::More tests => 1768;
 
-require_ok( 'Astro::SLA' );
 require_ok( 'Astro::Catalog::Star' );
 require_ok( 'Astro::Catalog' );
 
@@ -44,7 +42,8 @@ my $refcoords = new Astro::Coords( ra => "23:14:00",
 
 # 10 arcmin
 $cat->reset_list;
-@results = $cat->filter_by_distance( (10*60*Astro::SLA::DAS2R), $refcoords);
+my $limit = Astro::Coords::Angle->new( 10.0, units => "arcmin" );
+@results = $cat->filter_by_distance( $limit->radians, $refcoords);
 is( scalar(@results), 4, "search by radius");
 
 # search for string
@@ -55,6 +54,16 @@ is( scalar(@results), 3, "search by full name");
 $cat->reset_list;
 my ($gl) = $cat->popstarbyid( "GL490" );
 is( $gl->coords->rv(), -12.5,"GL490 velocity");
+
+# Check to see if line velocity range is defined.
+my $misc = $gl->misc;
+ok( ! defined( $misc->{'velocity_range'} ), "GL490 line velocity range");
+
+# Retrieve an object whose velocity range is defined.
+$cat->reset_list;
+my ($gl2477) = $cat->popstarbyid( "GL2477" );
+
+is( $gl2477->misc->{'velocity_range'}, '50.0', "GL2477 line velocity range" );
 
 # search for coords
 $cat->reset_list;
@@ -91,6 +100,17 @@ for my $id (keys %hash1) {
       is( sprintf("%.1f",$s2->coords->rv), sprintf("%.1f",$s1->coords->rv), "Compare velocity");
       is( $s2->coords->vdefn, $s1->coords->vdefn, "Compare vel definition");
       is( $s2->coords->vframe, $s1->coords->vframe, "Compare vel frame");
+
+      my $s1misc = $s1->misc;
+      my $s2misc = $s2->misc;
+      if( defined( $s1misc ) && defined( $s2misc ) ) {
+        if( defined( $s1misc->{'velocity_range'} ) && defined( $s2misc->{'velocity_range'} ) ) {
+          is( sprintf( "%.2f", $s1misc->{'velocity_range'} ), sprintf( "%.2f", $s2misc->{'velocity_range'} ), "Compare line velocity range" );
+        }
+        if( defined( $s1misc->{'flux850'} ) && defined( $s2misc->{'flux850'} ) ) {
+          is( sprintf( "%.2f", $s1misc->{'flux850'} ), sprintf( "%.2f", $s2misc->{'flux850'} ), "Compare 850-micron flux" );
+        }
+      }
     }
   } else {
     # one of them is not defined

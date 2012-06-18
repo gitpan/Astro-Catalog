@@ -117,10 +117,7 @@ sub compare_star {
     # did not get any value. Too far away
     ok( 0, "Error calculating star separation. Too far?");
   } else {
-    # check that DR2AS is defined, at one stage it was not
-    my $check = Astro::Catalog::Item::DR2AS;
-    die "Error obtaining DR2AS" if not defined $check;
-    my $assep = $radsep * Astro::Catalog::Item::DR2AS;
+    my $assep = $radsep->arcsec;
     ok( $assep < $maxsec, "compare distance between stars ($assep<$maxsec arcsec)" );
   }
 
@@ -128,8 +125,8 @@ sub compare_star {
   # these are not really useful given that we do a separation
   # test
   is( $cmpstar->ra(), $refstar->ra(), "compare star RA" );
-  is( substr($cmpstar->dec(),0,9), 
-      substr($refstar->dec(),0,9), 
+  is( substr($cmpstar->dec(),0,9),
+      substr($refstar->dec(),0,9),
       "Compare [truncated] star Dec" );
 
   # Compare field if the reference has a field
@@ -161,11 +158,11 @@ sub compare_star {
 
   my @cmp_cols = $cmpstar->what_colours();
   my @ref_cols = $refstar->what_colours();
-  
+
   #use Data::Dumper;
   #print Dumper( @cmp_cols );
   #print Dumper( @ref_cols );
-  
+
   is(scalar(@cmp_cols), scalar(@ref_cols), "compare number of colors");
 
   # Sort the colours.
@@ -174,10 +171,10 @@ sub compare_star {
 
   foreach my $col ( 0 ... $#ref_cols ) {
     is( $cmp_cols[$col], $ref_cols[$col],"compare color $ref_cols[$col]" );
-    is( $cmpstar->get_colour($cmp_cols[$col]), 
+    is( $cmpstar->get_colour($cmp_cols[$col]),
 	$refstar->get_colour($ref_cols[$col]),
 	"compare value of color $ref_cols[$col]");
-    is( $cmpstar->get_colourerr($cmp_cols[$col]), 
+    is( $cmpstar->get_colourerr($cmp_cols[$col]),
 	$refstar->get_colourerr($ref_cols[$col]),
 	"compare color error $ref_cols[$col]" );
   }
@@ -223,10 +220,7 @@ sub compare_mpc_star {
     # did not get any value. Too far away
     ok( 0, "Error calculating star separation. Too far?");
   } else {
-    # check that DR2AS is defined, at one stage it was not
-    my $check = Astro::Catalog::Item::DR2AS;
-    die "Error obtaining DR2AS" if not defined $check;
-    my $assep = $radsep * Astro::Catalog::Item::DR2AS;
+    my $assep = $radsep->arcsec;
     ok( $assep < $maxsec, "compare distance between stars ($assep<$maxsec arcsec)" );
   }
 
@@ -261,10 +255,10 @@ sub compare_mpc_star {
 
   foreach my $col ( 0 ... $#ref_cols ) {
     is( $cmp_cols[$col], $ref_cols[$col],"compare color $ref_cols[$col]" );
-    is( $cmpstar->get_colour($cmp_cols[$col]), 
+    is( $cmpstar->get_colour($cmp_cols[$col]),
 	$refstar->get_colour($ref_cols[$col]),
 	"compare value of color $ref_cols[$col]");
-    is( $cmpstar->get_colourerr($cmp_cols[$col]), 
+    is( $cmpstar->get_colourerr($cmp_cols[$col]),
 	$refstar->get_colourerr($ref_cols[$col]),
 	"compare color error $ref_cols[$col]" );
   }
