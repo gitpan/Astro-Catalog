@@ -57,7 +57,7 @@
    "provides" : {
       "Astro::Catalog" : {
          "file" : "lib/Astro/Catalog.pm",
-         "version" : "1.59"
+         "version" : "2.00"
       },
       "Astro::Catalog::IO::ASCII" : {
          "file" : "lib/Astro/Catalog/IO/ASCII.pm",
@@ -77,7 +77,7 @@
       },
       "Astro::Catalog::IO::Cluster" : {
          "file" : "lib/Astro/Catalog/IO/Cluster.pm",
-         "version" : "1.19"
+         "version" : "2.00"
       },
       "Astro::Catalog::IO::FINDOFF" : {
          "file" : "lib/Astro/Catalog/IO/FINDOFF.pm",
@@ -117,7 +117,7 @@
       },
       "Astro::Catalog::IO::Simple" : {
          "file" : "lib/Astro/Catalog/IO/Simple.pm",
-         "version" : "1.6"
+         "version" : "2.00"
       },
       "Astro::Catalog::IO::TST" : {
          "file" : "lib/Astro/Catalog/IO/TST.pm",
@@ -129,7 +129,7 @@
       },
       "Astro::Catalog::IO::VOTable" : {
          "file" : "lib/Astro/Catalog/IO/VOTable.pm",
-         "version" : "1.10"
+         "version" : "2.00"
       },
       "Astro::Catalog::IO::XY" : {
          "file" : "lib/Astro/Catalog/IO/XY.pm",
@@ -137,31 +137,31 @@
       },
       "Astro::Catalog::Item" : {
          "file" : "lib/Astro/Catalog/Item.pm",
-         "version" : "1.13"
+         "version" : "2.00"
       },
       "Astro::Catalog::Item::Morphology" : {
          "file" : "lib/Astro/Catalog/Item/Morphology.pm",
-         "version" : "1.4"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query" : {
          "file" : "lib/Astro/Catalog/Query.pm",
-         "version" : "1.8"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::2MASS" : {
          "file" : "lib/Astro/Catalog/Query/2MASS.pm",
-         "version" : "1.10"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::CMC" : {
          "file" : "lib/Astro/Catalog/Query/CMC.pm",
-         "version" : "1.3"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::GSC" : {
          "file" : "lib/Astro/Catalog/Query/GSC.pm",
-         "version" : "1.5"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::MPC" : {
          "file" : "lib/Astro/Catalog/Query/MPC.pm",
-         "version" : "1.2"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::SIMBAD" : {
          "file" : "lib/Astro/Catalog/Query/SIMBAD.pm",
@@ -169,7 +169,7 @@
       },
       "Astro::Catalog::Query::Sesame" : {
          "file" : "lib/Astro/Catalog/Query/Sesame.pm",
-         "version" : "1.9"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::SkyCat" : {
          "file" : "lib/Astro/Catalog/Query/SkyCat.pm",
@@ -177,31 +177,31 @@
       },
       "Astro::Catalog::Query::SuperCOSMOS" : {
          "file" : "lib/Astro/Catalog/Query/SuperCOSMOS.pm",
-         "version" : "1.11"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::USNOA2" : {
          "file" : "lib/Astro/Catalog/Query/USNOA2.pm",
-         "version" : "1.8"
+         "version" : "2.00"
       },
       "Astro::Catalog::Query::Vizier" : {
          "file" : "lib/Astro/Catalog/Query/Vizier.pm",
-         "version" : "1.1"
+         "version" : "2.00"
       },
       "Astro::Catalog::Star" : {
          "file" : "lib/Astro/Catalog/Star.pm",
-         "version" : "1.25"
+         "version" : "2.00"
       },
       "Astro::Catalog::Star::Morphology" : {
          "file" : "lib/Astro/Catalog/Star/Morphology.pm",
-         "version" : "1.4"
+         "version" : "2.00"
       },
       "Astro::Catalog::Transport::REST" : {
          "file" : "lib/Astro/Catalog/Transport/REST.pm",
-         "version" : "1.7"
+         "version" : "2.00"
       },
       "Astro::Catalog::Transport::WebService" : {
          "file" : "lib/Astro/Catalog/Transport/WebService.pm",
-         "version" : "1.4"
+         "version" : "2.00"
       },
       "Tk::AstroCatalog" : {
          "file" : "lib/Tk/AstroCatalog.pm",
@@ -218,5 +218,5 @@
          "url" : "git://github.com/timj/perl-Astro-Catalog.git"
       }
    },
-   "version" : "4.2"
+   "version" : "4.21"
 }
