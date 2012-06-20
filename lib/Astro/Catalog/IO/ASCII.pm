@@ -24,7 +24,7 @@ use strict;
 
 use vars qw/ $VERSION $DEBUG /;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 $DEBUG = 0;
 
 =head1 METHODS
@@ -73,7 +73,7 @@ sub read_catalog {
       # must be a scalar
       @lines = split /\n/, $args{data};
     } else {
-      if (ref($args{data}) eq 'GLOB') {
+      if (ref($args{data}) eq 'GLOB' || UNIVERSAL::isa($args{data},"IO::Handle") ) {
         # A file handle
         local $/ = "\n";
         # For some reason <$args{data}> does not do the right thing
