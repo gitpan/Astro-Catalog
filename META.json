@@ -205,7 +205,7 @@
       },
       "Tk::AstroCatalog" : {
          "file" : "lib/Tk/AstroCatalog.pm",
-         "version" : "0.11"
+         "version" : "0.12"
       }
    },
    "release_status" : "stable",
@@ -218,5 +218,5 @@
          "url" : "git://github.com/timj/perl-Astro-Catalog.git"
       }
    },
-   "version" : "4.22"
+   "version" : "4.23"
 }
