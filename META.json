@@ -6,7 +6,7 @@
       "Tim Lister E<lt>tlister@lcogt.netE<gt>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Build version 0.3901, CPAN::Meta::Converter version 2.120630",
    "license" : [
       "open_source"
    ],
@@ -28,12 +28,12 @@
       },
       "runtime" : {
          "recommends" : {
+            "Astro::FITS::CFITSIO" : "1.03",
             "Astro::VO::VOTable" : "0.9",
             "Tk" : "804.029"
          },
          "requires" : {
             "Astro::Coords" : "0.12",
-            "Astro::FITS::CFITSIO" : "1.03",
             "Astro::Flux" : "0.01",
             "Astro::Telescope" : "0.5",
             "Carp" : "1.01",
@@ -218,5 +218,5 @@
          "url" : "git://github.com/timj/perl-Astro-Catalog.git"
       }
    },
-   "version" : "4.23"
+   "version" : "4.24"
 }
