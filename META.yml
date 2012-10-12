@@ -9,7 +9,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.3
 dynamic_config: 1
-generated_by: 'Module::Build version 0.3901, CPAN::Meta::Converter version 2.120630'
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120630'
 license: open_source
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -129,7 +129,7 @@ provides:
     version: 2.00
   Tk::AstroCatalog:
     file: lib/Tk/AstroCatalog.pm
-    version: 0.12
+    version: 0.13
 recommends:
   Astro::FITS::CFITSIO: 1.03
   Astro::VO::VOTable: 0.9
@@ -157,4 +157,4 @@ resources:
   homepage: http://github.com/timj/perl-Astro-Catalog/tree/master
   license: http://opensource.org/licenses/gpl-license.php
   repository: git://github.com/timj/perl-Astro-Catalog.git
-version: 4.24
+version: 4.25
