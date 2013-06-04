@@ -19,6 +19,7 @@ sources from a default catalog or user-selected catalog file.
 
 use 5.004;
 use strict;
+use Math::Trig qw/pi/;
 use Carp;
 use Astro::Catalog;
 use Astro::Catalog::Star;
@@ -34,7 +35,7 @@ my $COLOR_INDEX = 0;
 
 use vars qw/$VERSION $FORMAT/;
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 # Kluge - this is the format of the catalog to be read
 # Needs to be given as an option on the FileSelect widget.
@@ -179,10 +180,10 @@ sub new {
 
 =item Catalog
 
-returns and sets the name of the Astro::Catalog
+Returns and sets the Astro::Catalog object.
 
   $catalog = $cat->Catalog();
-  $cat->Catalog('Default');
+  $cat->Catalog(new Astro::Catalog(...));
 
 =cut
 
@@ -1003,27 +1004,33 @@ sub inswt {
 =item getSource
 
 getSource prompts the user to enter source coords and name
-Can specify previous source object to edit.
+and filters the catalog based on the input provided.
 
-Returns void.
+Takes the new top level widget to use, and the search button
+to be re-activated when this window closes.
 
-   $obj = $cat->getSource();
-   $obj = $cat->getSource($source);
+   $obj = $cat->getSource($toplevel, $search_button);
 
 =cut
 
-############################################################
-#
-#  getSource prompts the user to enter source coords and name
-#  Can specify previous source object to edit.
-#
-#  Returns a Source object
-#
 sub getSource {
   my $self = shift;
   my $Top = shift;
   my $searchButton = shift;
   my @Epocs = ('RJ', 'RB');
+  my %distances = (
+      '15 degrees' => 15.0,
+      '5 degrees'  => 5.0,
+      '1 degree'   => 1.0,
+      '30\''       => 0.5,
+      '15\''       => 0.25,
+      '5\''        => 1.0 / 12,
+      '1\''        => 1.0 / 60,
+      '30\'\''     => 0.5 / 60,
+      '15\'\''     => 0.25 / 60,
+      '5\'\''      => 1.0 / 12 / 60,
+      '1\'\''      => 1.0 / 3600,
+  );
   my $name;
 
   $Top->title('Source Plot');
@@ -1048,38 +1055,99 @@ sub getSource {
   my $decEnt = $topFrame->Entry(-relief=>'sunken',
 				-width=>15)->grid(-column=>1, -row=>2, -padx =>10, -pady=>3);
 
+  $topFrame->Label(-text => 'Distance:')->grid(-column => 0, -row => 3);
+  my $distEnt = '1\'';
+  my $distB = $topFrame->Menubutton(-text => $distEnt, -relief => 'raised',
+                                    -width => 15);
+  foreach my $dist (sort {$distances{$b} <=> $distances{$a}} keys %distances) {
+      $distB->command(-label => $dist, -command => sub {
+          $distB->configure(-text => $dist);
+          $distEnt = $dist;
+      });
+  }
+  $distB->grid(-column => 1, -row => 3, -padx => 10, -pady => 5, -sticky => 'w');
+
   $topFrame->Label (
 		    -text => "Epoc:"
-		   )->grid(-column=>0, -row=>3, -padx =>5, -pady=>5);
-  my $epocEnt;
-  my $epocB = $topFrame->Menubutton(-relief => 'raised', -width => 15);
+		   )->grid(-column=>0, -row=>4, -padx =>5, -pady=>5);
+  my $epocEnt = 'RJ';
+  my $epocB = $topFrame->Menubutton(-text => $epocEnt, -relief => 'raised',
+                                    -width => 15);
   foreach $name (@Epocs) {
     $epocB->command(-label =>$name, -command=> sub{
 		   $epocB->configure( -text => $name );
 		   $epocEnt = $name;
 		 });
   }
-  $epocB->grid(-column=>1, -row=>3, -padx =>10, -pady=>5, -sticky=>'w');
+  $epocB->grid(-column=>1, -row=>4, -padx =>10, -pady=>5, -sticky=>'w');
 
   my $buttonF = $Top->Frame->pack(-padx=>10, -pady=>10);
   $buttonF->Button(
 		   -text         => 'Ok',
 		   -command      => sub{
-		     $self->Catalog->search_catalog(name => $nameEnt->get,
-					       ra   => $raEnt->get,
-					       dec  => $decEnt->get);
+                     my $name = $nameEnt->get(); undef $name if $name eq '';
+                     my $ra   = $raEnt->get();   undef $ra   if $ra   eq '';
+                     my $dec  = $decEnt->get();  undef $dec  if $dec  eq '';
+
+                     my $dec_tol = pi * $distances{$distEnt} / 180;
+                     my $ra_tol = $dec_tol * 15;
+
+                     # Filter by name if a name was specified.
+
+                     $self->Catalog()->filter_by_id($name) if defined $name;
+
+                     # Use Astro::Catalog's coordinate filter by distance
+                     # if possible.
+
+                     if (defined $ra and defined $dec) {
+
+                         my $coord = new Astro::Coords(ra => $ra, dec => $dec,
+                             type => $epocEnt eq 'RB' ? 'B1950' : 'J2000');
+
+                         $self->Catalog()->filter_by_distance($dec_tol,
+                                                              $coord);
+                     }
+                     elsif (defined $ra or defined $dec) {
+                         # Searching by RA or Dec alone isn't implemented
+                         # by Astro::Catalog, so use a callback filter.
+
+                         $ra = Astro::Coords::Angle::Hour->new(
+                                 $ra, range => '2PI')->radians()
+                             if defined $ra;
+                         $dec = Astro::Coords::Angle->new($dec)->radians()
+                             if defined $dec;
+
+                         $self->Catalog()->filter_by_cb(sub {
+                             my $item = shift;
+                             my $coord = $item->coords();
+                             my ($item_ra, $item_dec) = map {$_->radians()}
+                                 $epocEnt eq 'RB' ? $coord->radec1950()
+                                                  : $coord->radec();
+
+                             return ((! defined $ra or
+                                        abs($item_ra - $ra) <= $ra_tol)
+                                and  (! defined $dec or
+                                        abs($item_dec - $dec) <= $dec_tol));
+                         });
+                     }
+
 		     $self->fillWithSourceList ('full');
-		     destroy $Top;
-		     $searchButton->configure(-state =>'normal');
+		     $Top->destroy();
 		   }
 		  )->pack(-side=>'right');
   $buttonF->Button(
 		   -text         => 'Cancel',
 		   -command      => sub{
 		     $Top->destroy();
-		     $searchButton->configure(-state =>'normal');
 		   }
 		  )->pack(-side=>'right');
+
+  $Top->bind('<Destroy>', sub {
+      my $widget = shift;
+      return unless $widget == $Top;
+      $searchButton->configure(-state =>'normal');
+  });
+
   $Top->update;
   $Top->grab;
   return;
@@ -1145,6 +1213,7 @@ L<Astro::Catalog>, L<Astro::Catalog::Star>, L<Astro::Coords>
 
 =head1 COPYRIGHT
 
+Copyright (C) 2013 Science & Technology Facilities Council.
 Copyright (C) 1999-2002,2004 Particle Physics and Astronomy Research Council.
 All Rights Reserved.
 
