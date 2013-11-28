@@ -34,7 +34,7 @@ use base qw/ Astro::Catalog::IO::ASCII /;
 
 use vars qw/$VERSION $DEBUG /;
 
-$VERSION = '0.16';
+$VERSION = '0.17';
 $DEBUG   = 0;
 
 # Name must be limited to 15 characters on write
@@ -44,7 +44,7 @@ use constant MAX_SRC_LENGTH => 15;
 my $defaultCatalog = "/local/progs/etc/poi.dat";
 
 # Planets appended to the catalogue
-my @PLANETS = qw/ mars uranus saturn jupiter venus neptune /;
+my @PLANETS = qw/ mercury mars uranus saturn jupiter venus neptune /;
 
 =over 4
 

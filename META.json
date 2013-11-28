@@ -93,7 +93,7 @@
       },
       "Astro::Catalog::IO::JCMT" : {
          "file" : "lib/Astro/Catalog/IO/JCMT.pm",
-         "version" : "0.16"
+         "version" : "0.17"
       },
       "Astro::Catalog::IO::LCOGTFITSTable" : {
          "file" : "lib/Astro/Catalog/IO/LCOGTFITSTable.pm",
@@ -218,5 +218,5 @@
          "url" : "git://github.com/timj/perl-Astro-Catalog.git"
       }
    },
-   "version" : "4.27"
+   "version" : "4.28"
 }
