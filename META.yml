@@ -157,4 +157,4 @@ resources:
   homepage: http://github.com/timj/perl-Astro-Catalog/tree/master
   license: http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
   repository: git://github.com/timj/perl-Astro-Catalog.git
-version: 4.28
+version: 4.29
