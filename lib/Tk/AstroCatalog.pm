@@ -35,7 +35,7 @@ my $COLOR_INDEX = 0;
 
 use vars qw/$VERSION $FORMAT/;
 
-$VERSION = '0.14';
+$VERSION = '4.30';
 
 # Kluge - this is the format of the catalog to be read
 # Needs to be given as an option on the FileSelect widget.
@@ -583,6 +583,10 @@ sub makeCatalog
   if ($self->Catalog->reference) {
     $sortmenu->command(-label=>'Distance', -command=> sub {
 			 $self->Catalog->sort_catalog('distance');
+			 $self->fillWithSourceList ('full');
+		       });
+    $sortmenu->command(-label=>'Distance in Az', -command=> sub {
+			 $self->Catalog->sort_catalog('distance_az');
 			 $self->fillWithSourceList ('full');
 		       });
   }
