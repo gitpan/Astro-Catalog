@@ -31,7 +31,7 @@ use Astro::Coords;
 use Astro::Catalog;
 use Astro::Catalog::Star;
 
-$VERSION = "2.00";
+$VERSION = "4.31";
 
 =head1 REVISION
 
@@ -40,6 +40,8 @@ $Id: Sesame.pm,v 1.9 2005/07/25 07:45:49 aa Exp $
 =head1 METHODS
 
 =head2 Constructor
+
+=over 4
 
 =item B<new>
 
@@ -92,6 +94,8 @@ sub querydb {
   my $catalog = $self->_parse_query();
   return $catalog;
 }
+
+=back
 
 =begin __PRIVATE_METHODS__
 

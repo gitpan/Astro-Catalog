@@ -1,10 +1,12 @@
 package Astro::Catalog::Star;
 
+use strict;
+
 use Astro::Catalog::Item;
 
 use base qw/ Astro::Catalog::Item /;
 use vars qw/ $VERSION /;
-$VERSION = "2.00";
+$VERSION = "4.31";
 
 =head1 NAME
 

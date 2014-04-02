@@ -28,7 +28,7 @@ use File::Spec;
 use base qw/ Astro::Catalog::Transport::REST /;
 
 
-$VERSION = '0.02';
+$VERSION = '4.31';
 $DEBUG = 0;
 
 # Controls whether we follow 'directory' config entries and recursively
@@ -48,6 +48,8 @@ my %CONFIG;
 =head1 METHODS
 
 =head2 Constructor
+
+=over 4
 
 =item B<new>
 
@@ -89,6 +91,8 @@ sub new {
 
   return $block;
 }
+
+=back
 
 =head2 Accessor methods
 
@@ -343,6 +347,8 @@ sub _get_supported_init {
 
 These methods are not associated with any particular object.
 
+=over 4
+
 =item B<cfg_file>
 
 Location of the skycat config file. Default location is
@@ -393,20 +399,22 @@ sub cfg_file {
   my $cfg_file;
   if (@_) {
     $cfg_file = shift;
-    if( ( defined( $class->{CFG_FILE} ) &&
-          $cfg_file ne $class->{CFG_FILE} ) ||
-        ! defined( $class->{CFG_FILE} ) ) {
+    if( ( defined( $CFG_FILE ) &&
+          $cfg_file ne $CFG_FILE ) ||
+        ! defined( $CFG_FILE ) ) {
 
       # We were given a new config file, so load it.
       $class->_load_config($cfg_file);
-      $class->{CFG_FILE} = $cfg_file;
+      $CFG_FILE = $cfg_file;
     }
   }
-  if( ! defined( $class->{CFG_FILE} ) ) {
-    $class->{CFG_FILE} = _set_cfg_file;
+  if( ! defined( $CFG_FILE ) ) {
+    $CFG_FILE = _set_cfg_file;
   }
-  return $class->{CFG_FILE};
+  return $CFG_FILE;
 }
+
+=back
 
 =begin __PRIVATE_METHODS__
 

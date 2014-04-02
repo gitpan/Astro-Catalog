@@ -35,7 +35,7 @@ use base qw/ Astro::Catalog::IO::ASCII /;
 
 use vars qw/ $VERSION $DEBUG /;
 
-$VERSION = '0.02';
+$VERSION = '4.31';
 $DEBUG = 0;
 
 
@@ -180,6 +180,8 @@ sub _read_catalog {
   return $catalog;
 
 }
+
+=back
 
 =head1 REVISION
 
